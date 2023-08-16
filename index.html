@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet-Pong</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.7.0/lib/p5.js"></script>
+
+    <style>
+        main {
+            display: flex;
+            justify-content: center;
+            align-items:center ;
+            height: 97vh;
+        }
+    </style>
+
+</head>
+
+<body>
+    <main>
+    <script>
+        
+
+        //Variaveis da bolinha
+let xBolinha = innerWidth * 0.475
+let yBolinha = innerHeight * 0.475
+let diametroBolinha = innerHeight / 25
+let raio = diametroBolinha / 2;
+
+        //Variaveis da velocidade da bolinha
+let velxBolinha = innerHeight * 0.017;
+let velyBolinha = innerHeight * 0.017;
+
+        //Variaveis da raquete
+let Wraquete = innerWidth * 0.01
+let Hraquete = innerHeight * 0.22
+
+let xMyraquete = innerWidth * 0.005
+let yMyraquete = innerHeight * 0.475 - Hraquete / 2;
+
+        // Variaveis Bot
+let xBotraquete = innerWidth * 0.935;
+let yBotraquete = innerHeight * 0.475 - Hraquete / 2;
+let velocidadeRaqueteBot;
+
+        //Variaveis do Placar
+let myPontos = 0;
+let botPontos = 0;
+
+        //Bolinha voltar ao centro
+let resetBolinha = false;
+
+        //Chance do bot Errar
+let botMiss = 0;
+
+
+        // Variaveis de audio
+let audioTrilha = new Audio('./trilha.mp3')
+let audioRaquete = new Audio('./raquetada.mp3')
+let audioPonto = new Audio('./ponto.mp3')
+
+audioTrilha.addEventListener('canplaythrough', function() {
+    audioTrilha.play();
+});
+
+
+audioRaquete.addEventListener('canplaythrough', function() {
+    audioRaquete.play();
+});
+
+audioPonto.addEventListener('canplaythrough', function() {
+    audioPonto.play();
+});
+
+
+
+
+function setup() {  
+  createCanvas(innerWidth * 0.95, innerHeight * 0.95);
+}
+
+function draw() {
+  background(8);
+  bolinha();
+  Raquete(xMyraquete,yMyraquete);
+  Raquete(xBotraquete, yBotraquete);
+  bolinhaMovement();
+  colisaoBolinha();
+  colisaoRaquete();
+  colisaoRaqueteBot();
+  movimentaRaqueteBot();
+  moveMyRaquete();
+  placar();
+  pontuar();
+  resetGame();
+  trilhaInfinita();
+}
+
+function Raquete (x,y){
+    rect(x,y,Wraquete,Hraquete)
+}
+
+function bolinha (){
+  circle(xBolinha,yBolinha,diametroBolinha);
+}
+
+function bolinhaMovement(){
+    xBolinha += velxBolinha
+    yBolinha += velyBolinha
+}
+
+function colisaoBolinha(){
+    if (xBolinha + raio > width || xBolinha - raio < 0){
+  velxBolinha *= -1;
+  }
+  
+  if (yBolinha + raio > height || yBolinha - raio < 0) {
+  velyBolinha *= -1;
+  }
+
+
+}
+
+function moveMyRaquete (){
+    
+    if (keyIsDown(UP_ARROW)){
+    yMyraquete -= innerHeight /70;
+}
+    if (keyIsDown(DOWN_ARROW)){
+        yMyraquete +=innerHeight /70;
+    }
+
+   yMyraquete = constrain( yMyraquete, innerHeight * 0.005, innerHeight * 0.945 - Hraquete )
+}
+
+function colisaoRaquete () {
+    if (xBolinha - raio < xMyraquete + Wraquete 
+    && yBolinha - raio < yMyraquete + Hraquete 
+    && yBolinha + raio > yMyraquete ){
+        velxBolinha *= -1;
+        audioRaquete.play();
+        botAleatorio();
+    }
+
+}
+
+function botAleatorio () {
+
+botMiss = parseInt (Math.floor(Math.random() * 2 * Hraquete * 0.75) -Hraquete * 0.75)
+console.log(botMiss)
+} 
+
+
+function colisaoRaqueteBot () {
+    if (xBolinha + raio > xBotraquete
+    && yBolinha - raio < yBotraquete + Hraquete
+    && yBolinha + raio > yBotraquete ){
+        velxBolinha *= -1;
+        audioRaquete.play();
+    }
+
+}
+
+function movimentaRaqueteBot (){
+    velocidadeRaqueteBot = yBolinha - yBotraquete - Hraquete / 2 
+
+    yBotraquete += velocidadeRaqueteBot + botMiss;
+
+    yBotraquete = constrain( yBotraquete, innerHeight * 0.005, innerHeight * 0.945 - Hraquete )
+
+}
+
+
+
+function placar()
+{
+textAlign(CENTER);
+stroke(255)
+textSize(innerHeight * 0.04);
+fill(color(255,0, 0));
+rect(innerWidth * 0.355, innerHeight * 0.006, innerWidth * 0.04, innerWidth * 0.02)
+fill(255);
+text(myPontos, innerWidth * 0.375, innerHeight * 0.04)
+fill(color(255, 0, 0))
+rect(innerWidth * 0.529,innerHeight * 0.006,innerWidth * 0.04,innerWidth * 0.02)
+fill(255)
+text(botPontos, innerWidth * 0.55, innerHeight * 0.04 )
+}
+
+function pontuar (){
+    if (xBolinha - raio < innerWidth * 0 ) {
+        botPontos += 1;
+        resetBolinha = true;
+        botMiss = 1;
+        audioPonto.play();
+    }
+
+    if (xBolinha + raio > innerWidth * 0.95) {
+        myPontos += 1;
+        resetBolinha = true;
+        botMiss = 1;
+        audioPonto.play();
+    }
+}
+
+function resetGame () {
+    if (resetBolinha == true){
+        xBolinha = innerWidth * 0.475
+        yBolinha = innerHeight * 0.475
+        resetBolinha = false;
+
+    }
+
+}
+
+function trilhaInfinita() {
+    audioTrilha.play()
+    audioTrilha.volume = 0.05;
+}
+
+
+    </script>
+    </main>
+</body>
+</html>
